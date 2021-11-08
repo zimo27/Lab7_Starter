@@ -25,6 +25,8 @@ const router = new Router(function () {
    * This will only be two single lines
    * If you did this right, you should see just 1 recipe card rendered to the screen
    */
+  document.querySelector('section.section--recipe-cards').classList.add("shown");
+  document.querySelector('section.section--recipe-expand').classList.remove("shown");
 });
 
 window.addEventListener('DOMContentLoaded', init);
@@ -55,6 +57,18 @@ function initializeServiceWorker() {
    *  TODO - Part 2 Step 1
    *  Initialize the service worker set up in sw.js
    */
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function() {
+      navigator.serviceWorker.register('/sw.js').then(function(registration) {
+        // Registration was successful
+        console.log('ServiceWorker registration successful with scope: ', registration.scope);
+      }, function(err) {
+        // registration failed :(
+        console.log('ServiceWorker registration failed: ', err);
+      });
+    });
+  }
+
 }
 
 /**
@@ -119,6 +133,26 @@ function createRecipeCards() {
    * After this step you should see multiple cards rendered like the end of the last
    * lab
    */
+  for (let i=1; i<6; i++) {
+    let recipeCard1 = document.createElement('recipe-card');
+    recipeCard1.data = recipeData[recipes[i]];
+    if (i>2){
+      recipeCard1.classList.add('hidden');
+    }
+
+    let page1 = recipeData[recipes[i]]['page-name'];
+    router.addPage(page1, function() {
+      document.querySelector('.section--recipe-cards').classList.remove('shown');
+      
+      document.querySelector('.section--recipe-expand').classList.add('shown');
+      
+      document.querySelector('recipe-expand').data = recipeData[recipes[i]];
+    });
+    bindRecipeCard(recipeCard1, page1);
+
+    document.querySelector('.recipe-cards--wrapper').appendChild(recipeCard1);
+  }
+
 }
 
 /**
@@ -174,6 +208,7 @@ function bindEscKey() {
    * if the escape key is pressed, use your router to navigate() to the 'home'
    * page. This will let us go back to the home page from the detailed page.
    */
+  window.addEventListener('keydown', function(e){if (e.key === 'Escape'){router.navigate('home',false );}});
 }
 
 /**
@@ -195,4 +230,12 @@ function bindPopstate() {
    * so your navigate() function does not add your going back action to the history,
    * creating an infinite loop
    */
+  window.addEventListener('popstate', function(e) {
+    //console.log(e);
+    //console.log(e.state.name);
+    if (e.state!= null) {router.navigate(e.state.name,true );} 
+    else {router.navigate('home',true);}
+    
+  });
+  
 }
